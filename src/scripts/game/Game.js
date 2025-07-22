@@ -4,12 +4,15 @@ import { Background } from "./Background";
 import { Platforms } from "./Platforms";
 import { Hero } from "./Hero";
 import * as PIXI from "pixi.js";
+import * as Matter from "matter-js";
 
 export class Game extends Scene {
     create() {
         this.createHero();
         this.createBackground();
         this.createPlatforms();
+
+        this.setEvents();
     }
 
     createBackground() {
@@ -31,6 +34,20 @@ export class Game extends Scene {
                 this.hero.startJump();
             }
         });
+    }
+
+    setEvents() {
+        Matter.Events.on(App.physics, 'collisionStart', this.onCollisionStart.bind(this));
+    }
+
+    onCollisionStart(event) {
+        const colliders = [event.pairs[0].bodyA, event.pairs[0].bodyB];
+        const hero = colliders.find(body => body.gameHero);
+        const platform = colliders.find(body => body.gamePlatform);
+
+        if (hero && platform) {
+            this.hero.stayOnPlatform(platform.gamePlatform);
+        }
     }
 
     update(dt) {
